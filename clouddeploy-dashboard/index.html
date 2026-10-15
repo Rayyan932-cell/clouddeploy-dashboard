@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CloudDeploy | Deployment Dashboard</title>
+  <style>
+    :root {
+      --bg:#090d1a; --panel:#11182b; --panel2:#151e35; --line:#263252;
+      --text:#eef2ff; --muted:#8f9bb9; --purple:#9b7bff; --blue:#5ca8ff;
+      --green:#43d9a3; --yellow:#f6c96b; --red:#ff7c9c;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--text); background:radial-gradient(ellipse at top left,#19234b 0,transparent 42%),var(--bg); font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Arial,sans-serif; }
+    .app { display:flex; min-height:100vh; }
+    aside { width:238px; padding:26px 18px; border-right:1px solid var(--line); background:rgba(9,13,26,.78); }
+    .brand { display:flex; align-items:center; gap:11px; padding:0 10px 32px; font-weight:800; letter-spacing:.2px; font-size:18px; }
+    .logo { width:35px; height:35px; border-radius:12px; display:grid; place-items:center; background:linear-gradient(135deg,var(--blue),var(--purple)); box-shadow:0 8px 26px #7764ff44; }
+    .nav-label { color:#65718f; font-size:10px; font-weight:800; letter-spacing:1.6px; padding:0 12px; margin:18px 0 10px; }
+    .nav { display:flex; gap:12px; align-items:center; color:var(--muted); padding:12px; border-radius:11px; margin:4px 0; font-size:13px; }
+    .nav.active { color:white; background:linear-gradient(90deg,#6e61e633,#5ca8ff0d); border:1px solid #6d75df45; }
+    .nav .ico { width:20px; text-align:center; font-size:16px; }
+    .side-bottom { margin-top:42px; border:1px solid var(--line); background:var(--panel); border-radius:15px; padding:14px; }
+    .side-bottom small { color:var(--muted); line-height:1.5; display:block; margin-top:7px; }
+    main { flex:1; min-width:0; padding:30px clamp(18px,3vw,42px); max-width:1600px; margin:0 auto; width:100%; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:30px; }
+    .eyebrow { color:var(--purple); font-size:11px; letter-spacing:1.7px; text-transform:uppercase; font-weight:800; }
+    h1 { margin:7px 0 8px; font-size:clamp(25px,3vw,34px); letter-spacing:-1px; }
+    .sub { color:var(--muted); font-size:13px; }
+    .user { display:flex; align-items:center; gap:10px; padding:8px 12px 8px 8px; border:1px solid var(--line); background:#11182b; border-radius:14px; font-size:12px; white-space:nowrap; }
+    .avatar { width:32px;height:32px;display:grid;place-items:center;border-radius:10px;background:linear-gradient(135deg,#6b8cff,#b17aff);font-weight:800; }
+    .btn { border:0; border-radius:10px; color:#fff; padding:11px 15px; font-weight:750; font-size:12px; cursor:pointer; background:linear-gradient(110deg,#587dff,#9567f8); box-shadow:0 7px 22px #6c69f733; }
+    .btn:hover { filter:brightness(1.12); transform:translateY(-1px); }
+    .btn.secondary { background:#1a2440; border:1px solid #344365; box-shadow:none; color:#dce5ff; }
+    .top-actions { display:flex; align-items:center; gap:10px; }
+    .grid { display:grid; gap:16px; }
+    .stats { grid-template-columns:repeat(4,minmax(0,1fr)); margin-bottom:18px; }
+    .card { background:linear-gradient(145deg,rgba(21,30,53,.96),rgba(15,22,40,.96)); border:1px solid var(--line); border-radius:17px; padding:20px; box-shadow:0 12px 30px #00000012; }
+    .stat-head { display:flex; justify-content:space-between; align-items:center; color:var(--muted); font-size:12px; }
+    .stat-icon { width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:#8d7aff1b;color:var(--purple);font-size:17px; }
+    .metric { font-size:29px; font-weight:800; letter-spacing:-1px; margin:16px 0 7px; }
+    .trend { font-size:11px; color:var(--green); } .muted { color:var(--muted); }
+    .main-grid { grid-template-columns:minmax(0,1.45fr) minmax(290px,1fr); margin-bottom:18px; }
+    .section-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:17px; }
+    h2 { font-size:15px; margin:0; letter-spacing:-.2px; }
+    .pill { display:inline-flex; align-items:center; gap:6px; padding:6px 9px; border-radius:30px; font-size:10px; font-weight:800; background:#43d9a31a; color:var(--green); border:1px solid #43d9a333; }
+    .dot { width:6px;height:6px;border-radius:50%;background:currentColor; }
+    .repo { display:flex; align-items:center; gap:13px; padding:15px; border:1px solid #2a3859; background:#0d1427; border-radius:13px; }
+    .repo-icon { width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:#6e73ff1c;color:#a99aff;font-size:20px; }
+    .repo-name { font-weight:750; font-size:13px; margin-bottom:5px; }
+    .repo-meta { color:var(--muted); font-size:11px; }
+    .repo-right { margin-left:auto; text-align:right; }
+    .repo-right strong { font-size:12px; display:block; }
+    .repo-right span { color:var(--muted); font-size:10px; }
+    .pipeline { display:flex; align-items:center; margin:20px 0 4px; }
+    .stage { flex:1; text-align:center; position:relative; }
+    .stage:not(:last-child):after { content:""; position:absolute; height:2px; background:#3d4c70; left:60%; right:-40%; top:15px; }
+    .stage.done:not(:last-child):after { background:linear-gradient(90deg,var(--green),var(--blue)); }
+    .stage-icon { position:relative;z-index:1;margin:0 auto 9px;width:31px;height:31px;border-radius:50%;display:grid;place-items:center;border:1px solid #435274;background:#17213b;color:#aab7d8;font-size:13px; }
+    .stage.done .stage-icon { background:#163e3b;border-color:#2e9d80;color:var(--green); }
+    .stage.current .stage-icon { background:#29204b;border-color:#9578ff;color:#bdaaff; box-shadow:0 0 0 5px #9b7bff13; }
+    .stage strong { display:block;font-size:10px; }
+    .stage span { display:block;color:var(--muted);font-size:9px;margin-top:4px; }
+    .service { display:flex; align-items:center; padding:12px 0; border-bottom:1px solid #202b47; gap:11px; }
+    .service:last-child { border-bottom:0; padding-bottom:0; }
+    .service-icon { width:35px;height:35px;display:grid;place-items:center;border-radius:10px;background:#202c4b;font-size:17px; }
+    .service-name { font-size:12px;font-weight:700; }
+    .service-desc { font-size:10px;color:var(--muted);margin-top:4px; }
+    .service .pill { margin-left:auto; }
+    .bottom-grid { grid-template-columns:minmax(0,1.45fr) minmax(290px,1fr); }
+    .logs { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:11px; }
+    .log-row { display:grid; grid-template-columns:67px 48px minmax(0,1fr); gap:10px; padding:11px 0; border-bottom:1px solid #202b47; align-items:start; }
+    .log-row:last-child { border-bottom:0; }
+    .time { color:#697798; } .level { font-weight:800; } .ok { color:var(--green); } .info { color:var(--blue); } .warn { color:var(--yellow); }
+    .log-message { color:#c5cfea; overflow-wrap:anywhere; }
+    .activity { display:flex; gap:12px; padding:12px 0; border-bottom:1px solid #202b47; }
+    .activity:last-child { border:0; }
+    .activity-icon { width:29px;height:29px;display:grid;place-items:center;border-radius:9px;background:#1d2b49;flex-shrink:0; }
+    .activity strong { font-size:11px;display:block;margin:1px 0 5px; }
+    .activity span { color:var(--muted);font-size:10px;line-height:1.5; }
+    .footer { color:#64708e; font-size:10px; text-align:center; padding:22px 0 5px; }
+    .toast { position:fixed;right:24px;bottom:24px;max-width:320px;padding:14px 18px;background:#192541;border:1px solid #5467a2;border-radius:13px;color:#eef2ff;font-size:12px;box-shadow:0 15px 40px #0008;display:none; }
+    .toast.show { display:block; animation:fade .2s ease-out; }
+    @keyframes fade { from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)} }
+    @media(max-width:1050px) { aside{width:190px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.main-grid,.bottom-grid{grid-template-columns:1fr} }
+    @media(max-width:700px) { .app{display:block} aside{width:auto;border-right:0;border-bottom:1px solid var(--line);padding:14px}.brand{padding:0 7px 12px}.nav-wrap{display:flex;overflow:auto;gap:5px}.nav-label,.side-bottom{display:none}.nav{white-space:nowrap;margin:0;padding:9px}.topbar{align-items:flex-start;flex-direction:column;margin-bottom:22px}.top-actions{width:100%;flex-wrap:wrap}.stats{gap:10px}.card{padding:15px}.metric{font-size:25px}.repo{align-items:flex-start}.repo-right{display:none}.log-row{grid-template-columns:52px 40px minmax(0,1fr);gap:6px;font-size:10px}main{padding:22px 14px} }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand"><div class="logo">✦</div><span>Cloud<span style="color:#a994ff">Deploy</span></span></div>
+    <div class="nav-label">WORKSPACE</div>
+    <div class="nav-wrap">
+      <div class="nav active"><span class="ico">▦</span> Overview</div>
+      <div class="nav"><span class="ico">⑂</span> Repositories</div>
+      <div class="nav"><span class="ico">▣</span> Containers</div>
+      <div class="nav"><span class="ico">☁</span> Environments</div>
+    </div>
+    <div class="nav-label">MANAGE</div>
+    <div class="nav-wrap">
+      <div class="nav"><span class="ico">◷</span> Activity logs</div>
+      <div class="nav"><span class="ico">⚙</span> Settings</div>
+    </div>
+    <div class="side-bottom">
+      <div style="font-size:12px;font-weight:800">🚀 Deployment tip</div>
+      <small>Push your latest code to GitHub to keep your project history organized.</small>
+    </div>
+  </aside>
+  <main>
+    <div class="topbar">
+      <div>
+        <div class="eyebrow">Workspace / Overview</div>
+        <h1>Deployment overview</h1>
+        <div class="sub">Monitor your app pipeline from code to cloud.</div>
+      </div>
+      <div class="top-actions">
+        <div class="user"><div class="avatar">CD</div><div><strong>Cloud Project</strong><div class="muted" style="margin-top:3px">Student workspace</div></div></div>
+        <button class="btn" id="deployBtn">↗ &nbsp; Simulate deploy</button>
+      </div>
+    </div>
+
+    <div class="grid stats">
+      <div class="card"><div class="stat-head"><span>Deployments</span><div class="stat-icon">↗</div></div><div class="metric" id="deployCount">12</div><div class="trend">↑ 3 this week</div></div>
+      <div class="card"><div class="stat-head"><span>Build success rate</span><div class="stat-icon" style="color:var(--green)">✓</div></div><div class="metric">98.4%</div><div class="trend">↑ 2.1% from last week</div></div>
+      <div class="card"><div class="stat-head"><span>Active containers</span><div class="stat-icon" style="color:var(--blue)">▣</div></div><div class="metric" id="containerCount">01</div><div class="sub">Local demo container</div></div>
+      <div class="card"><div class="stat-head"><span>Cloud status</span><div class="stat-icon" style="color:var(--green)">☁</div></div><div class="metric" style="font-size:23px;color:var(--green)">Healthy</div><div class="sub">Dashboard demo status</div></div>
+    </div>
+
+    <div class="grid main-grid">
+      <section class="card">
+        <div class="section-head"><h2>Deployment pipeline</h2><span class="pill"><span class="dot"></span> All systems normal</span></div>
+        <div class="repo">
+          <div class="repo-icon">⑂</div>
+          <div><div class="repo-name">clouddeploy-dashboard</div><div class="repo-meta">main · latest commit: <span style="color:#c3b5ff">initial-dashboard</span></div></div>
+          <div class="repo-right"><strong>Docker · Nginx</strong><span>Static web app</span></div>
+        </div>
+        <div class="pipeline">
+          <div class="stage done"><div class="stage-icon">✓</div><strong>Git Push</strong><span>Source saved</span></div>
+          <div class="stage done"><div class="stage-icon">✓</div><strong>Build</strong><span>Image ready</span></div>
+          <div class="stage done"><div class="stage-icon">✓</div><strong>Container</strong><span>App packaged</span></div>
+          <div class="stage current"><div class="stage-icon">☁</div><strong>Cloud</strong><span id="cloudStage">Ready to deploy</span></div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="section-head"><h2>Services</h2><span class="muted" style="font-size:10px">DEMO VIEW</span></div>
+        <div class="service"><div class="service-icon">⑂</div><div><div class="service-name">Git / GitHub</div><div class="service-desc">Version control</div></div><span class="pill"><span class="dot"></span> Ready</span></div>
+        <div class="service"><div class="service-icon">🐳</div><div><div class="service-name">Docker Engine</div><div class="service-desc">Container runtime</div></div><span class="pill"><span class="dot"></span> Ready</span></div>
+        <div class="service"><div class="service-icon">☁</div><div><div class="service-name">Cloud platform</div><div class="service-desc">Render connection not verified</div></div><span class="pill" style="background:#f6c96b18;color:var(--yellow);border-color:#f6c96b33">Demo</span></div>
+      </section>
+    </div>
+
+    <div class="grid bottom-grid">
+      <section class="card">
+        <div class="section-head"><h2>Recent deployment logs</h2><button class="btn secondary" id="clearLogs">Clear logs</button></div>
+        <div class="logs" id="logs">
+          <div class="log-row"><span class="time">10:42:08</span><span class="level ok">SUCCESS</span><span class="log-message">Dashboard assets loaded successfully</span></div>
+          <div class="log-row"><span class="time">10:42:07</span><span class="level info">INFO</span><span class="log-message">Nginx static server configuration detected</span></div>
+          <div class="log-row"><span class="time">10:42:06</span><span class="level ok">SUCCESS</span><span class="log-message">Docker image clouddeploy-dashboard is ready</span></div>
+          <div class="log-row"><span class="time">10:42:05</span><span class="level info">INFO</span><span class="log-message">Git branch main selected for deployment</span></div>
+          <div class="log-row"><span class="time">10:42:04</span><span class="level warn">NOTICE</span><span class="log-message">Cloud status is illustrative until deployed to a provider</span></div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="section-head"><h2>Recent activity</h2><span style="color:var(--purple);font-size:11px">View all →</span></div>
+        <div class="activity"><div class="activity-icon">✓</div><div><strong>Project workspace initialized</strong><span>Git repository and Docker setup checklist created.</span></div></div>
+        <div class="activity"><div class="activity-icon">🐳</div><div><strong>Container configuration added</strong><span>Nginx image selected for static website hosting.</span></div></div>
+        <div class="activity"><div class="activity-icon">☁</div><div><strong>Cloud deployment pending</strong><span>Connect the repository to Render to publish this app.</span></div></div>
+      </section>
+    </div>
+    <div class="footer">CLOUDDEPLOY UI · EDUCATIONAL PRACTICAL PROJECT · STATUS CARDS ARE DEMO DATA</div>
+  </main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+  const logs = document.getElementById('logs');
+  const toast = document.getElementById('toast');
+  function now() { return new Date().toLocaleTimeString('en-GB', {hour12:false}); }
+  function addLog(level, message) {
+    const row = document.createElement('div');
+    row.className = 'log-row';
+    const t = document.createElement('span'); t.className = 'time'; t.textContent = now();
+    const l = document.createElement('span'); l.className = 'level ' + (level === 'SUCCESS' ? 'ok' : level === 'INFO' ? 'info' : 'warn'); l.textContent = level;
+    const m = document.createElement('span'); m.className = 'log-message'; m.textContent = message;
+    row.append(t,l,m); logs.prepend(row);
+  }
+  let toastTimer;
+  function notify(message) { toast.textContent = message; toast.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 3000); }
+  document.getElementById('deployBtn').addEventListener('click', () => {
+    const btn = document.getElementById('deployBtn');
+    btn.disabled = true; btn.textContent = '⟳  Deploying...';
+    document.getElementById('cloudStage').textContent = 'Deploying';
+    addLog('INFO','Deployment simulation started by user');
+    setTimeout(() => addLog('INFO','Checking project configuration...'), 500);
+    setTimeout(() => addLog('SUCCESS','Docker image validation passed'), 1100);
+    setTimeout(() => {
+      document.getElementById('deployCount').textContent = Number(document.getElementById('deployCount').textContent) + 1;
+      document.getElementById('cloudStage').textContent = 'Demo complete';
+      addLog('SUCCESS','Demo deployment flow completed — no real cloud service was called');
+      btn.disabled = false; btn.textContent = '↗  Simulate deploy';
+      notify('Demo deployment completed. Connect Render for a real deployment.');
+    }, 1800);
+  });
+  document.getElementById('clearLogs').addEventListener('click', () => { logs.replaceChildren(); notify('Logs cleared'); });
+</script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CloudDeploy | Working Dashboard</title>
+<style>
+:root{--bg:#090d1a;--panel:#11182b;--panel2:#151e35;--line:#263252;--text:#eef2ff;--muted:#8f9bb9;--purple:#9b7bff;--blue:#5ca8ff;--green:#43d9a3;--yellow:#f6c96b;--red:#ff7c9c}
+*{box-sizing:border-box}body{margin:0;color:var(--text);background:radial-gradient(ellipse at top left,#19234b 0,transparent 42%),var(--bg);font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif}.app{display:flex;min-height:100vh}
+aside{width:225px;padding:25px 17px;border-right:1px solid var(--line);background:#090d1ad9}.brand{display:flex;align-items:center;gap:11px;padding:0 9px 30px;font-weight:850;font-size:18px}.logo{width:35px;height:35px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,var(--blue),var(--purple));box-shadow:0 8px 26px #7764ff44}.nav-label{color:#65718f;font-size:10px;font-weight:800;letter-spacing:1.6px;padding:0 12px;margin:18px 0 10px}.nav{display:flex;gap:12px;align-items:center;color:var(--muted);padding:12px;border-radius:11px;margin:4px 0;font-size:13px;cursor:pointer}.nav.active,.nav:hover{color:white;background:linear-gradient(90deg,#6e61e633,#5ca8ff0d);border:1px solid #6d75df45}.ico{width:20px;text-align:center;font-size:16px}.side-note{margin-top:35px;border:1px solid var(--line);background:var(--panel);border-radius:15px;padding:14px;font-size:12px}.side-note p{color:var(--muted);line-height:1.5;font-size:11px}
+main{flex:1;min-width:0;padding:29px clamp(16px,3vw,40px);max-width:1600px;margin:0 auto;width:100%}.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:27px}.eyebrow{color:var(--purple);font-size:11px;letter-spacing:1.7px;text-transform:uppercase;font-weight:800}h1{margin:7px 0 8px;font-size:clamp(25px,3vw,34px);letter-spacing:-1px}.sub{color:var(--muted);font-size:13px}.top-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.user{display:flex;align-items:center;gap:10px;padding:8px 12px 8px 8px;border:1px solid var(--line);background:#11182b;border-radius:14px;font-size:12px}.avatar{width:32px;height:32px;display:grid;place-items:center;border-radius:10px;background:linear-gradient(135deg,#6b8cff,#b17aff);font-weight:800}
+.btn{border:0;border-radius:10px;color:#fff;padding:11px 14px;font-weight:750;font-size:12px;cursor:pointer;background:linear-gradient(110deg,#587dff,#9567f8);box-shadow:0 7px 22px #6c69f733}.btn:hover{filter:brightness(1.12);transform:translateY(-1px)}.btn:disabled{opacity:.55;cursor:wait;transform:none}.btn.secondary{background:#1a2440;border:1px solid #344365;box-shadow:none;color:#dce5ff}.grid{display:grid;gap:16px}.stats{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}.card{background:linear-gradient(145deg,#151e35f5,#0f1628f5);border:1px solid var(--line);border-radius:17px;padding:19px;box-shadow:0 12px 30px #00000012}.stat-head{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12px}.stat-icon{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:#8d7aff1b;color:var(--purple);font-size:17px}.metric{font-size:27px;font-weight:800;letter-spacing:-1px;margin:15px 0 7px}.muted,.small{color:var(--muted)}.small{font-size:11px}.green{color:var(--green)}.yellow{color:var(--yellow)}.red{color:var(--red)}.main-grid,.bottom-grid{grid-template-columns:minmax(0,1.4fr) minmax(280px,1fr);margin-bottom:18px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:17px}h2{font-size:15px;margin:0}.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:30px;font-size:10px;font-weight:800;background:#43d9a31a;color:var(--green);border:1px solid #43d9a333;white-space:nowrap}.pill.warn{background:#f6c96b18;color:var(--yellow);border-color:#f6c96b33}.dot{width:6px;height:6px;border-radius:50%;background:currentColor}.repo{display:flex;align-items:center;gap:13px;padding:14px;border:1px solid #2a3859;background:#0d1427;border-radius:13px}.repo-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:#6e73ff1c;color:#a99aff;font-size:20px}.repo-name{font-weight:750;font-size:13px;margin-bottom:5px}.repo-meta{color:var(--muted);font-size:11px}.pipeline{display:flex;align-items:center;margin:22px 0 5px}.stage{flex:1;text-align:center;position:relative}.stage:not(:last-child):after{content:"";position:absolute;height:2px;background:#3d4c70;left:60%;right:-40%;top:15px}.stage.done:not(:last-child):after{background:linear-gradient(90deg,var(--green),var(--blue))}.stage-icon{position:relative;z-index:1;margin:0 auto 9px;width:31px;height:31px;border-radius:50%;display:grid;place-items:center;border:1px solid #435274;background:#17213b;color:#aab7d8;font-size:13px}.stage.done .stage-icon{background:#163e3b;border-color:#2e9d80;color:var(--green)}.stage.current .stage-icon{background:#29204b;border-color:#9578ff;color:#bdaaff;box-shadow:0 0 0 5px #9b7bff13}.stage strong{display:block;font-size:10px}.stage span{display:block;color:var(--muted);font-size:9px;margin-top:4px}.service{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid #202b47;gap:11px}.service:last-child{border-bottom:0}.service-icon{width:35px;height:35px;display:grid;place-items:center;border-radius:10px;background:#202c4b;font-size:17px;flex-shrink:0}.service-name{font-size:12px;font-weight:700}.service-desc{font-size:10px;color:var(--muted);margin-top:4px}.service .pill{margin-left:auto}
+.logs{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;max-height:335px;overflow:auto}.log-row{display:grid;grid-template-columns:75px 54px minmax(0,1fr);gap:9px;padding:11px 0;border-bottom:1px solid #202b47;align-items:start}.log-row:last-child{border-bottom:0}.time{color:#697798}.level{font-weight:800}.ok{color:var(--green)}.info{color:var(--blue)}.warn-text{color:var(--yellow)}.error{color:var(--red)}.log-message{color:#c5cfea;overflow-wrap:anywhere}.activity{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #202b47}.activity:last-child{border:0}.activity-icon{width:29px;height:29px;display:grid;place-items:center;border-radius:9px;background:#1d2b49;flex-shrink:0}.activity strong{font-size:11px;display:block;margin:1px 0 5px}.activity span{color:var(--muted);font-size:10px;line-height:1.5}.footer{color:#64708e;font-size:10px;text-align:center;padding:20px 0 5px}.toast{position:fixed;right:22px;bottom:22px;max-width:340px;padding:14px 17px;background:#192541;border:1px solid #5467a2;border-radius:13px;color:#eef2ff;font-size:12px;box-shadow:0 15px 40px #0008;display:none;z-index:10}.toast.show{display:block}.empty{padding:20px 0;color:var(--muted);text-align:center;font-size:12px}
+@media(max-width:1050px){aside{width:190px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.main-grid,.bottom-grid{grid-template-columns:1fr}}@media(max-width:700px){.app{display:block}aside{width:auto;border-right:0;border-bottom:1px solid var(--line);padding:14px}.brand{padding:0 7px 12px}.navs{display:flex;overflow:auto;gap:5px}.nav-label,.side-note{display:none}.nav{white-space:nowrap;margin:0;padding:9px}.topbar{align-items:flex-start;flex-direction:column}.top-actions{width:100%}.card{padding:15px}main{padding:20px 13px}.log-row{grid-template-columns:52px 43px minmax(0,1fr);gap:6px;font-size:10px}.user{flex:1}.pipeline{margin-top:18px}.stage strong{font-size:9px}.stage span{font-size:8px}}
+</style>
+<link rel="stylesheet" href="/premium.css" />
+</head>
+<body>
+<div class="app">
+<aside>
+  <div class="brand"><div class="logo">âœ¦</div><span>Cloud<span style="color:#a994ff">Deploy</span></span></div>
+  <div class="nav-label">WORKSPACE</div>
+  <div class="navs">
+    <div class="nav active" data-view="overview"><span class="ico">â–¦</span> Overview</div>
+    <div class="nav" data-view="services"><span class="ico">â–£</span> Services</div>
+    <div class="nav" data-view="logs"><span class="ico">â—·</span> Activity logs</div>
+  </div>
+  <div class="side-note"><strong>Live connection</strong><p>Cards use data returned by this app's backend API. Docker details describe this app's runtime only.</p></div>
+</aside>
+<main>
+  <div class="topbar">
+    <div><div class="eyebrow">Workspace / Overview</div><h1 id="pageTitle">Deployment overview</h1><div class="sub">Live app health, runtime details and activity from the backend API.</div></div>
+    <div class="top-actions"><div class="user"><div class="avatar">CD</div><div><strong>Cloud Project</strong><div class="muted" style="margin-top:3px">Connected to local API</div></div></div><button class="btn" id="refreshBtn">â†» &nbsp; Refresh status</button></div>
+  </div>
+  <div class="grid stats">
+    <div class="card"><div class="stat-head"><span>API status</span><div class="stat-icon">âŒ</div></div><div class="metric" id="apiMetric">Checkingâ€¦</div><div class="small" id="apiSub">Requesting /api/status</div></div>
+    <div class="card"><div class="stat-head"><span>App uptime</span><div class="stat-icon">â—·</div></div><div class="metric" id="uptimeMetric">â€”</div><div class="small">Since this server process started</div></div>
+    <div class="card"><div class="stat-head"><span>Runtime memory</span><div class="stat-icon">â–¤</div></div><div class="metric" id="memoryMetric">â€”</div><div class="small" id="memorySub">Node.js process RSS</div></div>
+    <div class="card"><div class="stat-head"><span>Backend logs</span><div class="stat-icon">â‰‹</div></div><div class="metric" id="logsMetric">â€”</div><div class="small">Current in-memory log entries</div></div>
+  </div>
+  <div class="grid main-grid">
+    <section class="card">
+      <div class="section-head"><h2>Application pipeline</h2><span class="pill" id="pipelinePill"><span class="dot"></span> API checking</span></div>
+      <div class="repo"><div class="repo-icon">âŒ˜</div><div><div class="repo-name">clouddeploy-dashboard</div><div class="repo-meta">Node.js API Â· Static frontend</div></div><span class="pill" id="runtimePill" style="margin-left:auto">Detecting runtime</span></div>
+      <div class="pipeline">
+        <div class="stage done"><div class="stage-icon">âœ“</div><strong>Frontend</strong><span>Loaded</span></div>
+        <div class="stage current" id="apiStage"><div class="stage-icon">âŒ</div><strong>Backend API</strong><span id="apiStageText">Checking</span></div>
+        <div class="stage" id="runtimeStage"><div class="stage-icon">â–£</div><strong>Runtime</strong><span id="runtimeStageText">Checking</span></div>
+        <div class="stage"><div class="stage-icon">â˜</div><strong>Cloud</strong><span>Not connected</span></div>
+      </div>
+      <div class="small" style="margin-top:15px">Cloud deployment is not triggered by this dashboard. Deploy the project through your cloud provider.</div>
+    </section>
+    <section class="card">
+      <div class="section-head"><h2>Service health</h2><span class="small">LIVE API</span></div>
+      <div class="service"><div class="service-icon">âŒ</div><div><div class="service-name">Backend API</div><div class="service-desc">GET /api/status</div></div><span class="pill" id="apiServicePill">Checking</span></div>
+      <div class="service"><div class="service-icon">â–£</div><div><div class="service-name">Application runtime</div><div class="service-desc" id="runtimeDesc">Waiting for API</div></div><span class="pill" id="runtimeServicePill">Checking</span></div>
+      <div class="service"><div class="service-icon">â‰‹</div><div><div class="service-name">Activity log API</div><div class="service-desc">GET /api/logs</div></div><span class="pill" id="logsServicePill">Checking</span></div>
+      <button class="btn secondary" id="checkBtn" style="margin-top:16px;width:100%">âœ“ &nbsp; Run system check</button>
+    </section>
+  </div>
+  <div class="grid bottom-grid">
+    <section class="card" id="logsCard">
+      <div class="section-head"><h2>Recent activity logs</h2><div style="display:flex;gap:8px"><button class="btn secondary" id="reloadLogsBtn">â†» Reload</button><button class="btn secondary" id="clearLogsBtn">Clear</button></div></div>
+      <div class="logs" id="logsList"><div class="empty">Loading logs from backendâ€¦</div></div>
+    </section>
+    <section class="card">
+      <div class="section-head"><h2>Quick actions</h2><span class="small">API CONNECTED</span></div>
+      <div class="activity"><div class="activity-icon">â†»</div><div><strong>Refresh live status</strong><span>Fetches current process health and memory details from the backend.</span><button class="btn secondary" id="quickRefresh" style="margin-top:9px">Refresh status</button></div></div>
+      <div class="activity"><div class="activity-icon">âœ“</div><div><strong>Run system check</strong><span>Calls the backend check endpoint and records a real API activity entry.</span><button class="btn secondary" id="quickCheck" style="margin-top:9px">Run check</button></div></div>
+      <div class="activity"><div class="activity-icon">â†—</div><div><strong>Deployment demo action</strong><span>Records a demo request only. It does not deploy to a cloud provider.</span><button class="btn" id="demoDeploy" style="margin-top:9px">Record demo action</button></div></div>
+    </section>
+  </div>
+  <div class="footer">CLOUDDEPLOY Â· LIVE BACKEND DATA Â· CLOUD PROVIDER NOT CONNECTED</div>
+<section id="neonGameSection" style="margin-top:32px;padding:22px;background:#10152b;border:1px solid #5145cd;border-radius:18px;color:white"><h2 style="color:#a78bfa">🎮 Neon Racer</h2><p>Take a break and beat your high score!</p><iframe src="/game.html" title="Neon Racer game" style="width:100%;height:620px;border:1px solid #5145cd;border-radius:12px;background:#080b18"></iframe></section>
+</main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+const $ = id => document.getElementById(id);
+let toastTimer;
+function toast(message){$('toast').textContent=message;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),3200)}
+function setPill(el,text,kind='ok'){el.className='pill'+(kind==='warn'?' warn':'');el.innerHTML='<span class="dot"></span>'+text}
+function fmtUptime(seconds){const d=Math.floor(seconds/86400),h=Math.floor(seconds%86400/3600),m=Math.floor(seconds%3600/60),s=seconds%60;return d?`${d}d ${h}h`:`${h}h ${m}m ${s}s`}
+function fmtTime(iso){return new Date(iso).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+async function api(url,options={}){const r=await fetch(url,{cache:'no-store',headers:{'Content-Type':'application/json',...(options.headers||{})},...options});const data=await r.json();if(!r.ok)throw new Error(data.error||`HTTP ${r.status}`);return data}
+async function refreshStatus(){
+  $('refreshBtn').disabled=true;
+  try{
+    const s=await api('/api/status');
+    $('apiMetric').textContent='Online';$('apiMetric').className='metric green';$('apiSub').textContent=`HTTP API responding Â· ${new Date(s.timestamp).toLocaleTimeString()}`;
+    $('uptimeMetric').textContent=fmtUptime(s.uptimeSeconds);
+    $('memoryMetric').textContent=`${s.memory.usedMb} MB`;$('memorySub').textContent=`Process RSS Â· host memory ${s.memory.totalMb} MB`;
+    $('logsMetric').textContent=s.logCount;
+    setPill($('pipelinePill'),'API online');setPill($('apiServicePill'),'Online');
+    $('runtimePill').textContent=s.containerDetected?'Docker detected':'Node.js process';
+    $('runtimeDesc').textContent=s.runtime;
+    setPill($('runtimeServicePill'),s.containerDetected?'Detected':'Process');
+    setPill($('logsServicePill'),'Available');
+    $('apiStage').className='stage done';$('apiStageText').textContent='Responding';
+    $('runtimeStage').className=s.containerDetected?'stage done':'stage current';$('runtimeStageText').textContent=s.containerDetected?'Detected':'Process';
+  }catch(e){
+    $('apiMetric').textContent='Offline';$('apiMetric').className='metric red';$('apiSub').textContent=e.message;
+    setPill($('pipelinePill'),'API offline','warn');setPill($('apiServicePill'),'Offline','warn');
+    setPill($('runtimeServicePill'),'Unknown','warn');setPill($('logsServicePill'),'Unknown','warn');
+    $('runtimeDesc').textContent='Backend not reachable';
+    toast('Backend API error: '+e.message);
+  }finally{$('refreshBtn').disabled=false}
+}
+function levelClass(level){return level==='SUCCESS'?'ok':level==='WARN'?'warn-text':level==='ERROR'?'error':'info'}
+async function loadLogs(){
+  try{
+    const data=await api('/api/logs');$('logsMetric').textContent=data.count;
+    if(!data.logs.length){$('logsList').innerHTML='<div class="empty">No log entries yet.</div>';return}
+    $('logsList').innerHTML=data.logs.map(l=>`<div class="log-row"><span class="time">${esc(fmtTime(l.time))}</span><span class="level ${levelClass(l.level)}">${esc(l.level)}</span><span class="log-message">${esc(l.message)}</span></div>`).join('');
+  }catch(e){$('logsList').innerHTML=`<div class="empty">Could not load logs: ${esc(e.message)}</div>`}
+}
+async function systemCheck(){
+  $('checkBtn').disabled=true;
+  try{const r=await api('/api/actions/check',{method:'POST',body:'{}'});toast(r.message);await Promise.all([refreshStatus(),loadLogs()])}
+  catch(e){toast('System check failed: '+e.message)}
+  finally{$('checkBtn').disabled=false}
+}
+$('refreshBtn').addEventListener('click',async()=>{await refreshStatus();await loadLogs();toast('Status refreshed from backend API')});
+$('reloadLogsBtn').addEventListener('click',async()=>{await loadLogs();toast('Logs reloaded from backend')});
+$('clearLogsBtn').addEventListener('click',async()=>{if(!confirm('Clear backend activity log history?'))return;try{await api('/api/logs',{method:'DELETE'});await loadLogs();await refreshStatus();toast('Backend logs cleared')}catch(e){toast(e.message)}});
+$('checkBtn').addEventListener('click',systemCheck);$('quickCheck').addEventListener('click',systemCheck);
+$('quickRefresh').addEventListener('click',async()=>{await refreshStatus();await loadLogs();toast('Live status refreshed')});
+$('demoDeploy').addEventListener('click',async()=>{try{const r=await api('/api/actions/deploy-demo',{method:'POST',body:'{}'});toast(r.message);await loadLogs()}catch(e){toast(e.message)}});
+document.querySelectorAll('.nav').forEach(n=>n.addEventListener('click',()=>{document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));n.classList.add('active');if(n.dataset.view==='logs'){$('logsCard').scrollIntoView({behavior:'smooth',block:'start'});$('pageTitle').textContent='Activity logs'}else if(n.dataset.view==='services'){$('apiServicePill').closest('.card').scrollIntoView({behavior:'smooth',block:'start'});$('pageTitle').textContent='Service health'}else{window.scrollTo({top:0,behavior:'smooth'});$('pageTitle').textContent='Deployment overview'}}));
+async function initial(){await refreshStatus();await loadLogs()}
+initial();
+setInterval(refreshStatus,15000);setInterval(loadLogs,10000);
+</script>
+</body>
+</html>
+
+
+

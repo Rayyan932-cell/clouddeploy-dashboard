@@ -1,0 +1,193 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Neon Racer 3D</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#070b18;color:#f4f5ff;font:14px Arial,sans-serif}
+.wrap{max-width:1200px;margin:auto;padding:18px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+h1{margin:0;color:#b7a0ff;letter-spacing:2px}
+.sub{color:#98a4cc;margin:8px 0 18px}
+.hud{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.card{padding:12px 18px;border:1px solid #30385f;border-radius:12px;background:#11172c;min-width:110px}
+.card span{display:block;color:#98a4cc;font-size:11px;margin-bottom:6px}
+.card b{font-size:20px}
+.stage{position:relative;border:1px solid #5145cd;border-radius:16px;overflow:hidden;background:#050816}
+#scene{width:100%;height:min(62vh,600px);min-height:350px;display:block}
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;background:linear-gradient(#080b1c55,#080b1c99)}
+.overlay.hidden{display:none}
+.modal{padding:25px;background:#10152beF;border:1px solid #6355d9;border-radius:18px;max-width:340px}
+.modal h2{color:#c4b5fd;margin:0 0 8px}
+.modal p{color:#c3cbe8;line-height:1.5}
+button{border:0;border-radius:10px;background:#7c3aed;color:white;padding:12px 18px;font-weight:bold;cursor:pointer}
+button:hover{background:#9560f5}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.hint{color:#98a4cc;margin-top:12px;line-height:1.5}
+@media(max-width:600px){.wrap{padding:10px}.card{flex:1;min-width:85px;padding:10px}.card b{font-size:17px}#scene{min-height:330px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><h1>NEON RACER <span style="color:#60a5fa">3D</span></h1><div style="color:#98a4cc">CLOUDDEPLOY ARCADE</div></header>
+<p class="sub">Dodge traffic. Own the neon highway.</p>
+<div class="hud">
+<div class="card"><span>SCORE</span><b id="score">00000</b></div>
+<div class="card"><span>SPEED</span><b id="speed">0</b></div>
+<div class="card"><span>BEST THIS RUN</span><b id="best">00000</b></div>
+<div class="card"><span>STATUS</span><b id="status" style="font-size:14px">READY</b></div>
+</div>
+<div class="stage">
+<div id="scene"></div>
+<div class="overlay" id="overlay"><div class="modal"><h2 id="overlayTitle">NEON HIGHWAY</h2><p id="overlayText">Enter the neon city. Avoid the traffic and survive as long as you can.</p><button id="start">START RACE</button></div></div>
+</div>
+<div class="controls">
+<button id="left">◀ LEFT</button><button id="right">RIGHT ▶</button><button id="pause">PAUSE</button><button id="restart">RESTART</button>
+</div>
+<p class="hint">Controls: A / D or ← / → to steer · Space to pause · Enter to start. Use the buttons on touch screens.</p>
+</div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js';
+
+const host=document.getElementById('scene');
+const scoreEl=document.getElementById('score'),speedEl=document.getElementById('speed');
+const bestEl=document.getElementById('best'),statusEl=document.getElementById('status');
+const overlay=document.getElementById('overlay'),overlayTitle=document.getElementById('overlayTitle');
+const overlayText=document.getElementById('overlayText');
+let scene,camera,renderer,player,clock,active=false,paused=false,gameOver=false;
+let score=0,speed=18,best=0,lane=1,targetLane=1,spawnTimer=0,roadMarks=[],obstacles=[];
+const laneX=[-3.2,0,3.2];
+
+function material(color,emissive=color,metalness=.3,roughness=.35){
+ return new THREE.MeshStandardMaterial({color,emissive,emissiveIntensity:.65,metalness,roughness});
+}
+function box(parent,w,h,d,mat,x,y,z){
+ const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+ mesh.position.set(x,y,z);parent.add(mesh);return mesh;
+}
+function makeCar(color){
+ const car=new THREE.Group();
+ const body=material(color,color,.55,.25),glass=material(0x15264c,0x1d4ed8,.6,.18);
+ box(car,1.35,.42,2.5,body,0,.55,0);
+ box(car,1.02,.52,1.12,glass,0,.96,-.18);
+ box(car,.34,.12,.08,material(0x9deaff,0x38bdf8),-.43,.66,1.27);
+ box(car,.34,.12,.08,material(0xff7bda,0xec4899),.43,.66,-1.27);
+ const wheelMat=material(0x111827,0x111827,.1,.85);
+ for(const x of [-.76,.76])for(const z of [-.78,.82]){
+  const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,.16,16),wheelMat);
+  wheel.rotation.z=Math.PI/2;wheel.position.set(x,.31,z);car.add(wheel);
+ }
+ return car;
+}
+function init(){
+ scene=new THREE.Scene();scene.background=new THREE.Color(0x060916);
+ scene.fog=new THREE.Fog(0x060916,28,125);
+ camera=new THREE.PerspectiveCamera(62,host.clientWidth/host.clientHeight,.1,220);
+ camera.position.set(0,7,12);
+ renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});
+ renderer.setPixelRatio(Math.min(devicePixelRatio,1.8));
+ renderer.setSize(host.clientWidth,host.clientHeight);
+ renderer.outputColorSpace=THREE.SRGBColorSpace;
+ host.appendChild(renderer.domElement);
+ scene.add(new THREE.HemisphereLight(0x9bbaff,0x17102f,2));
+ const light=new THREE.DirectionalLight(0xffffff,2.2);light.position.set(-5,12,8);scene.add(light);
+ const road=box(scene,11,.2,150,material(0x11162c,0x11162c,.15,.8),0,-.12,-45);
+ for(let x of [-5.45,5.45]){
+  const rail=box(scene,.09,.08,150,material(0x8b5cf6,0x7c3aed),x,.03,-45);
+ }
+ for(let x of [-1.6,1.6]){
+  for(let i=0;i<22;i++){
+   const mark=box(scene,.045,.025,2.4,material(0x5a5c9d,0x4338ca),x,.015,-i*6);
+   roadMarks.push(mark);
+  }
+ }
+ const ground=box(scene,180,.2,180,material(0x080d20,0x080d20),0,-.35,-45);
+ const glowMat=material(0x25316c,0x3730a3);
+ for(let side of [-1,1]){
+  for(let i=0;i<16;i++){
+   const height=2+(i%4)*1.6,width=1.5+(i%3);
+   box(scene,width,height,2,glowMat,side*(8+i%3*2),height/2-0.05,-i*9-5);
+   const stripe=box(scene,width,.045,.05,material(0x8b5cf6,0x7c3aed),side*(8+i%3*2),height*.72,-i*9-3.95);
+  }
+ }
+ player=makeCar(0x22d3ee);player.position.set(0,0,4);scene.add(player);
+ clock=new THREE.Clock();
+ window.addEventListener('resize',resize);
+ animate();
+}
+function resize(){
+ if(!renderer)return;
+ camera.aspect=host.clientWidth/host.clientHeight;camera.updateProjectionMatrix();
+ renderer.setSize(host.clientWidth,host.clientHeight);
+}
+function spawnObstacle(){
+ const car=makeCar([0xff3d81,0xffb020,0xa78bfa][Math.floor(Math.random()*3)]);
+ car.scale.setScalar(.9);car.position.set(laneX[Math.floor(Math.random()*3)],0,-85);
+ scene.add(car);obstacles.push({mesh:car,z:-85});
+}
+function clearObstacles(){
+ for(const o of obstacles)scene.remove(o.mesh);
+ obstacles=[];
+}
+function start(){
+ score=0;speed=18;spawnTimer=0;lane=1;targetLane=1;gameOver=false;paused=false;active=true;
+ player.position.x=0;clearObstacles();overlay.classList.add('hidden');
+ statusEl.textContent='RACING';document.getElementById('pause').textContent='PAUSE';
+ clock.getDelta();
+}
+function finish(){
+ active=false;gameOver=true;statusEl.textContent='CRASHED';
+ overlayTitle.textContent='RACE OVER';overlayText.textContent='Score: '+Math.floor(score)+' — try again and beat your record.';
+ document.getElementById('start').textContent='RACE AGAIN';overlay.classList.remove('hidden');
+}
+function steer(dir){if(active&&!paused)targetLane=Math.max(0,Math.min(2,targetLane+dir));}
+function togglePause(){
+ if(!active)return;
+ paused=!paused;statusEl.textContent=paused?'PAUSED':'RACING';
+ document.getElementById('pause').textContent=paused?'RESUME':'PAUSE';
+}
+function animate(){
+ requestAnimationFrame(animate);
+ const dt=Math.min(clock.getDelta(),.04);
+ if(active&&!paused){
+  score+=dt*10;speed=18+Math.min(score*.12,32);
+  scoreEl.textContent=String(Math.floor(score)).padStart(5,'0');
+  speedEl.textContent=String(Math.floor(speed*4))+' km/h';
+  best=Math.max(best,Math.floor(score));bestEl.textContent=String(best).padStart(5,'0');
+  player.position.x=THREE.MathUtils.damp(player.position.x,laneX[targetLane],8,dt);
+  player.rotation.z=(laneX[targetLane]-player.position.x)*-.07;
+  camera.position.x=THREE.MathUtils.damp(camera.position.x,player.position.x*.35,3,dt);
+  camera.lookAt(player.position.x*.25,1,-8);
+  for(const mark of roadMarks){mark.position.z+=speed*dt;if(mark.position.z>9)mark.position.z-=132;}
+  spawnTimer+=dt;
+  if(spawnTimer>Math.max(.5,1.45-score*.002)){spawnObstacle();spawnTimer=0;}
+  for(let i=obstacles.length-1;i>=0;i--){
+   const o=obstacles[i];o.mesh.position.z+=speed*dt;
+   if(o.mesh.position.z>player.position.z-1.1&&o.mesh.position.z<player.position.z+1.1&&Math.abs(o.mesh.position.x-player.position.x)<1.25){finish();break;}
+   if(o.mesh.position.z>12){scene.remove(o.mesh);obstacles.splice(i,1);}
+  }
+ }
+ if(renderer)renderer.render(scene,camera);
+}
+document.getElementById('start').addEventListener('click',start);
+document.getElementById('restart').addEventListener('click',start);
+document.getElementById('left').addEventListener('click',()=>steer(-1));
+document.getElementById('right').addEventListener('click',()=>steer(1));
+document.getElementById('pause').addEventListener('click',togglePause);
+document.addEventListener('keydown',e=>{
+ if(['ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();
+ if(e.key==='ArrowLeft'||e.key.toLowerCase()==='a')steer(-1);
+ if(e.key==='ArrowRight'||e.key.toLowerCase()==='d')steer(1);
+ if(e.key===' '){togglePause();}
+ if(e.key==='Enter'&&(!active||gameOver))start();
+});
+try{init();}catch(err){
+ overlay.classList.remove('hidden');overlayTitle.textContent='3D ENGINE ERROR';
+ overlayText.textContent='Could not initialise WebGL. Try an updated browser with hardware acceleration enabled.';
+ console.error(err);
+}
+</script>
+</body>
+</html>

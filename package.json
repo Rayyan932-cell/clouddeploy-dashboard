@@ -1,0 +1,16 @@
+{
+  "name": "clouddeploy-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Working CloudDeploy dashboard with Node API, activity logs, and Docker health status",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "three": "^0.186.1"
+  }
+}

@@ -1,0 +1,116 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neon Racer 3D</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#080b18;color:#fff;font-family:Arial,sans-serif}
+.game{max-width:1100px;margin:auto;padding:20px}
+h1{color:#a78bfa;margin:0 0 8px}
+p{color:#b9c2df}
+.hud{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:16px 0}
+.panel{background:#141a31;border:1px solid #343b67;padding:12px 18px;border-radius:12px}
+#game{width:100%;height:520px;display:block;border:1px solid #4f46e5;border-radius:16px;background:#090d20}
+button{background:#7c3aed;color:white;border:0;border-radius:9px;padding:12px 20px;cursor:pointer;font-weight:bold}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="game">
+<h1>NEON RACER 3D</h1>
+<p>Dodge the neon obstacles. Survive as long as possible!</p>
+<div class="hud">
+<div class="panel">SCORE: <b id="score">0</b></div>
+<div class="panel">SPEED: <b id="speed">1</b></div>
+<div class="panel" id="status">READY TO RACE</div>
+</div>
+<canvas id="game" width="1000" height="520"></canvas>
+<div class="controls">
+<button id="start">START / RESTART</button>
+<button id="left">◀ LEFT</button>
+<button id="right">RIGHT ▶</button>
+</div>
+<p>Keyboard: A / D or ← / →. Mobile: use the LEFT and RIGHT buttons.</p>
+</div>
+<script>
+const canvas=document.getElementById('game');
+const ctx=canvas.getContext('2d');
+const scoreEl=document.getElementById('score');
+const speedEl=document.getElementById('speed');
+const statusEl=document.getElementById('status');
+let running=false,score=0,lane=1,obstacles=[],ticks=0,raf=0;
+const lanes=[0.34,0.5,0.66];
+
+function road(){
+ ctx.fillStyle='#080b18';ctx.fillRect(0,0,1000,520);
+ ctx.fillStyle='#111632';
+ ctx.beginPath();ctx.moveTo(350,0);ctx.lineTo(650,0);ctx.lineTo(970,520);ctx.lineTo(30,520);ctx.closePath();ctx.fill();
+ ctx.strokeStyle='#7c3aed';ctx.lineWidth=4;
+ ctx.beginPath();ctx.moveTo(350,0);ctx.lineTo(30,520);ctx.moveTo(650,0);ctx.lineTo(970,520);ctx.stroke();
+ for(let i=0;i<2;i++){
+  let x=350+(i+1)*100;
+  ctx.strokeStyle='#343b67';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(500+(i===0?-1:1)*156,520);ctx.stroke();
+ }
+ for(let i=0;i<16;i++){
+  let y=(i*45+(ticks*5)%45);
+  let w=10+y*.22;
+  ctx.fillStyle='#4f46e5';
+  ctx.fillRect(500-w/2,y,w,2+y*.008);
+ }
+}
+function car(x,y,w,h,color){
+ ctx.fillStyle=color;
+ ctx.beginPath();ctx.moveTo(x,y-h/2);ctx.lineTo(x+w/2,y-h/4);ctx.lineTo(x+w/2,y+h/2);ctx.lineTo(x-w/2,y+h/2);ctx.lineTo(x-w/2,y-h/4);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#b9f4ff';ctx.fillRect(x-w*.27,y-h*.22,w*.54,h*.22);
+ ctx.fillStyle='#ff3ea5';ctx.fillRect(x-w*.4,y+h*.27,w*.2,h*.1);ctx.fillRect(x+w*.2,y+h*.27,w*.2,h*.1);
+}
+function draw(){
+ road();
+ obstacles.forEach(o=>{
+  const y=o.y,scale=.45+y/900,w=55*scale,h=65*scale;
+  car(500+(o.lane-1)*((y+50)*.36),y,w,h,'#ff3864');
+ });
+ car(500+(lane-1)*110,425,62,92,'#22d3ee');
+ ctx.fillStyle='#fff';ctx.font='18px Arial';ctx.fillText('NEON CITY',24,35);
+}
+function endGame(){
+ running=false;statusEl.textContent='CRASHED — RESTART TO PLAY';
+ draw();
+ ctx.fillStyle='rgba(3,5,18,.78)';ctx.fillRect(0,0,1000,520);
+ ctx.textAlign='center';ctx.fillStyle='#ff6bce';ctx.font='bold 44px Arial';ctx.fillText('RACE OVER',500,235);
+ ctx.fillStyle='white';ctx.font='24px Arial';ctx.fillText('Score: '+score,500,280);
+ ctx.font='18px Arial';ctx.fillText('Press START / RESTART',500,320);ctx.textAlign='left';
+}
+function frame(){
+ if(!running)return;
+ ticks++;score+=1;scoreEl.textContent=score;speedEl.textContent=(1+Math.floor(score/500));
+ if(ticks%42===0)obstacles.push({lane:Math.floor(Math.random()*3),y:15});
+ obstacles.forEach(o=>o.y+=3+Math.min(score/400,5));
+ obstacles=obstacles.filter(o=>o.y<570);
+ for(const o of obstacles){
+  if(o.lane===lane&&o.y>350&&o.y<465){endGame();return;}
+ }
+ draw();raf=requestAnimationFrame(frame);
+}
+function start(){
+ cancelAnimationFrame(raf);score=0;ticks=0;lane=1;obstacles=[];running=true;
+ scoreEl.textContent='0';speedEl.textContent='1';statusEl.textContent='RACING';
+ frame();
+}
+function move(n){if(running)lane=Math.max(0,Math.min(2,lane+n));}
+document.getElementById('start').addEventListener('click',start);
+document.getElementById('left').addEventListener('click',()=>move(-1));
+document.getElementById('right').addEventListener('click',()=>move(1));
+document.addEventListener('keydown',e=>{
+ if(['ArrowLeft','ArrowRight','a','A','d','D'].includes(e.key))e.preventDefault();
+ if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A')move(-1);
+ if(e.key==='ArrowRight'||e.key==='d'||e.key==='D')move(1);
+ if(e.key==='Enter'&&!running)start();
+});
+draw();
+</script>
+</body>
+</html>
